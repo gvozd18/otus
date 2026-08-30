@@ -61,7 +61,7 @@
 
 ## Конфигураций
 
-[Конфигурации](https://github.com/gvozd18/otus/blob/main/lab1/configslab1.zip).
+[Конфигурации](https://github.com/gvozd18/otus/blob/main/lab2/configslab2.zip).
 
 
 </details>
