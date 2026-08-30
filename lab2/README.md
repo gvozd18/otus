@@ -99,8 +99,6 @@ router ospf 1
 ```
 </details>
 
-<details>
-
 
 ## Конфигураций
 
