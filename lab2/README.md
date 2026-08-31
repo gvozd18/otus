@@ -65,36 +65,46 @@
 <summary> Пример конфигурации SPINE1 </summary>
 
 ```
+interface Loopback0
+   description Router-ID
+   ip address 10.0.1.1/32
+   ip ospf area 0.0.0.0
+
 interface Ethernet1
    description P2P-to-LEAF1-Eth1
    no switchport
    ip address 10.0.0.0/31
    ip ospf network point-to-point
    ip ospf area 0.0.0.0
-!
+   ip ospf authentication message-digest
+   ip ospf message-digest-key 1 md5 OTUS
+   bfd interval 300 min-rx 300 multiplier 3
+
 interface Ethernet2
    description P2P-to-LEAF2-Eth1
    no switchport
    ip address 10.0.0.4/31
    ip ospf network point-to-point
    ip ospf area 0.0.0.0
-!
+   ip ospf authentication message-digest
+   ip ospf message-digest-key 1 md5 OTUS
+   bfd interval 300 min-rx 300 multiplier 3
+
 interface Ethernet3
    description P2P-to-LEAF3-Eth1
    no switchport
    ip address 10.0.0.8/31
    ip ospf network point-to-point
    ip ospf area 0.0.0.0
+   ip ospf authentication message-digest
+   ip ospf message-digest-key 1 md5 OTUS
+   bfd interval 300 min-rx 300 multiplier 3
 
-interface Loopback0
-   description Router-ID
-   ip address 10.0.1.1/32
-   ip ospf area 0.0.0.0
-!
+
 router ospf 1
    router-id 10.0.1.1
    passive-interface Loopback0
-   max-lsa 12000
+   bfd default
 !
 ```
 </details>
@@ -104,4 +114,9 @@ router ospf 1
 
 [Конфигурации](https://github.com/gvozd18/otus/blob/main/lab2/configslab2.zip).
 
+## Проверка связности
+![Проверка 1](Ospf1.jpg) ![Проверка 2](Ospf2.jpg)
+![Проверка 3](Ospf3.jpg)
+![Проверка 4](Ospf4.jpg)
+![Проверка 5](Ospf5.jpg)
 
