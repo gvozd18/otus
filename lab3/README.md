@@ -117,7 +117,7 @@ router isis UNDERLAY
 
 ![Проверка 1](Spine1.jpg) 
 ![Проверка 2](Spine2.jpg)
-![Проверка 3](Leaf1.jpg)
-![Проверка 4](Leaf2.jpg)
-![Проверка 5](Leaf3.jpg)
+![Проверка 3](leaf1.jpg)
+![Проверка 4](leaf2.jpg)
+![Проверка 5](leaf3.jpg)
 
