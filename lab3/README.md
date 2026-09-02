@@ -107,8 +107,6 @@ router isis UNDERLAY
 ```
 </details>
 
-<details>
-
 
 
 ## Конфигураций
