@@ -119,3 +119,9 @@ end
 ## Проверка связности
 
 ![Проверка](IBGP_ECMP.jpg) 
+
+## Соседство и маршруты
+
+![Leaf 1](Leaf1.png)
+![Leaf 2](Leaf2.png)
+![Leaf 3](Leaf3.png)
