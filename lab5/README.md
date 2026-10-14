@@ -625,12 +625,3 @@ ping -c 3 10.0.16.103
 ![Leaf 3](Leaf3.png)
 
 ---
-
-## Особенности реализации
-
-1. **Underlay** — iBGP в AS 65000, Spine = Route Reflector. Leaf ↔ Spine по линковым адресам, IPv4 unicast AF.
-2. **Overlay** — iBGP EVPN по Loopback0, AF `L2VPN EVPN`. Spine остаётся Route Reflector.
-3. **VTEP** — выделенный Loopback1 (`10.0.2.0/24`), анонсируется через `route-map RM_connect permit 20`.
-4. **Anycast-шлюз** — `ip address virtual 10.0.16.1/24` на SVI всех Leaf-ов.
-5. **Flood-список** — в vEOS 4.29.2F автоматическое построение из EVPN IMET не сработало, поэтому используется явный `vxlan vlan 10 flood vtep ...`.
-6. **multi-agent** — `service routing protocols model multi-agent` обязательна для EVPN/VXLAN.
