@@ -79,28 +79,7 @@
 
 ## Схема сети
 
-```
-                    ┌──────────┐        ┌──────────┐
-                    │ SPINE1   │        │ SPINE2   │
-                    │ RR       │        │ RR       │
-                    │ 10.0.1.1 │        │ 10.0.1.2 │
-                    └────┬─────┘        └────┬─────┘
-                         │  iBGP over Loopback
-                         │  AF IPv4 + L2VPN EVPN
-                 ┌───────┼───────┐    ┌───────┼───────┐
-                 │       │       │    │       │       │
-              LEAF1   LEAF2   LEAF3  LEAF1   LEAF2   LEAF3
-              .11     .12     .13    .11     .12     .13
-              VTEP    VTEP    VTEP
-              .2.11   .2.12   .2.13
-                 │       │       │
-                 H1      H2      H3
-              .16.101 .16.102 .16.103
-                 └─── VXLAN VNI 10010 ───┘
-                     anycast GW 10.0.16.1
-```
-
----
+![Схема.jpg](Схема.jpg)
 
 ## План работы
 
@@ -510,9 +489,6 @@ end
 **H1 (LEAF1):**
 
 ```
-auto lo
-iface lo inet loopback
-
 auto ens3
 iface ens3 inet static
     address 10.0.16.101
@@ -532,77 +508,24 @@ iface ens3 inet static
     dns-nameservers 8.8.8.8
 ```
 
-**H3 (LEAF3):**
-
-```
-auto ens3
-iface ens3 inet static
-    address 10.0.16.103
-    netmask 255.255.255.0
-    gateway 10.0.16.1
-    dns-nameservers 8.8.8.8
-```
-
-Применить: `sudo systemctl restart networking`
-
 ---
 
-## Проверка связности
+## Соседство и маршруты
 
-### 1. Underlay BGP
+Для примера приведены выводы команд с LEAF1
 
-На LEAF1:
+![LEAF1](LEAF1.jpg)
 
-```
-show ip route bgp
-```
-
-Ожидаем Loopback0 всех устройств: `10.0.1.1/32`, `10.0.1.2/32`, `10.0.1.12/32`, `10.0.1.13/32`.
-
-### 2. Overlay EVPN
-
-На LEAF1:
-
-```
-show bgp evpn summary
-show bgp evpn route-type imet
-show bgp evpn route-type mac-ip
-```
-
-Ожидаем:
-
-- EVPN-сессии к Spine1 и Spine2 — `Estab`.
-- Type-3 (IMET) от всех VTEP: `10.0.2.11`, `10.0.2.12`, `10.0.2.13`.
-- Type-2 (MAC/IP) для MAC клиентов.
-
-### 3. VXLAN
-
-На LEAF1:
-
-```
-show vxlan vtep
-show vxlan flood vtep
-show vxlan address-table
-```
-
-Ожидаем:
-
-- Flood-список: `10.0.2.12`, `10.0.2.13`.
-- Remote VTEP после первого пинга.
-- Remote MAC клиентов за удалёнными VTEP.
+![LEAF1](LEAF1_2.jpg)
 
 ### 4. Связность клиентов
 
-На H1:
 
-```
-ping -c 3 10.0.16.102
-ping -c 3 10.0.16.103
-```
+![H1](H1.jpg)
 
-Ожидаем 0% потерь после первых 2–3 пакетов (ARP + BUM-flood + построение туннелей).
+![H2](H2.jpg)
 
----
+
 
 ## Итоговая схема
 
@@ -612,16 +535,4 @@ ping -c 3 10.0.16.103
 
 [Конфигурации](https://github.com/gvozd18/otus/blob/main/lab5/lab5.zip)
 
-## Проверка связности
 
-![Проверка Underlay](IBGP_ECMP.jpg)
-
-![Проверка Overlay](EVPN_VXLAN_ping.png)
-
-## Соседство и маршруты
-
-![Leaf 1](Leaf1.png)
-![Leaf 2](Leaf2.png)
-![Leaf 3](Leaf3.png)
-
----
