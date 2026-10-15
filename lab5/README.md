@@ -62,7 +62,7 @@
 |---|---|---|---|---|
 | H1 | LEAF1 | Eth3 | `10.0.16.101/24` | `10.0.16.1` |
 | H2 | LEAF2 | Eth3 | `10.0.16.102/24` | `10.0.16.1` |
-| H3 | LEAF3 | Eth3 | `10.0.16.103/24` | `10.0.16.1` |
+
 
 ### EVPN / VXLAN
 
@@ -87,33 +87,15 @@
 
 1. Настраиваем IP-адресацию на физических интерфейсах (P2P `/31`).
 2. Настраиваем Loopback0 (`10.0.1.0/24`) для Router-ID.
-3. Настраиваем iBGP в AS 65000:
-   - Leaf ↔ Spine по линковым адресам.
-   - Spine — Route Reflector для Leaf-ов.
-   - `maximum-paths 10` для ECMP.
-   - `redistribute connected route-map RM_connect` для анонса Loopback0.
-4. Проверяем IP-связность: все Loopback0 достижимы со всех устройств.
+3. Настраиваем iBGP в AS 65000
 
 ### Часть 2. Overlay (EVPN/VXLAN)
 
-5. Включаем `service routing protocols model multi-agent`.
-6. Настраиваем Loopback1 (`10.0.2.0/24`) как VTEP на Leaf-ах.
-7. Расширяем `route-map RM_connect` — добавляем `permit 20 match interface Loopback1`.
-8. Настраиваем iBGP-сессии по Loopback0 между Leaf и Spine с AF `L2VPN EVPN`.
-9. Spine остаётся Route Reflector для EVPN (в глобальном контексте `router bgp`).
-10. Настраиваем на Leaf-ах:
-    - VLAN 10 + SVI `Vlan10` с `ip address virtual 10.0.16.1/24` (anycast).
-    - `interface Vxlan1` с `vxlan source-interface Loopback1`, `vxlan vlan 10 vni 10010`.
-    - `router bgp → vlan 10` с RD `<VTEP-IP>:10010`, RT `65000:10010`, `redistribute learned`.
-11. Добавляем статический flood-список `vxlan vlan 10 flood vtep ...` на каждом Leaf (в vEOS 4.29.2F автоматический flood из EVPN IMET не сработал).
-12. Подключаем клиентов к Eth3 и настраиваем IP.
-
-### Часть 3. Проверка
-
-13. Проверяем EVPN-сессии (`show bgp evpn summary`).
-14. Проверяем Type-3 (IMET) и Type-2 (MAC/IP).
-15. Проверяем VXLAN flood-список и таблицу VTEP.
-16. Проверяем пинг между клиентами H1 ↔ H2.
+4. Настраиваем Loopback1 (`10.0.2.0/24`) как VTEP на Leaf-ах.
+5. Настраиваем iBGP-сессии по Loopback0 между Leaf и Spine с AF `L2VPN EVPN`.
+6. Spine остаётся Route Reflector для EVPN
+7. Настраиваем VxLAN
+8. Подключаем клиентов к Eth3 и настраиваем IP.
 
 ---
 
