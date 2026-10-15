@@ -525,14 +525,6 @@ iface ens3 inet static
 
 ![H2](H2.jpg)
 
-
-
-## Итоговая схема
-
-![Схема](Схема.jpg)
-
-## Конфигурации
-
 [Конфигурации](https://github.com/gvozd18/otus/blob/main/lab5/lab5.zip)
 
 
