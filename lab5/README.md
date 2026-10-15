@@ -503,7 +503,3 @@ iface ens3 inet static
 ![H1](H1.jpg)
 
 ![H2](H2.jpg)
-
-[Конфигурации](https://github.com/gvozd18/otus/blob/main/lab5/lab5.zip)
-
-
