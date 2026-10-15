@@ -475,7 +475,6 @@ iface ens3 inet static
     address 10.0.16.101
     netmask 255.255.255.0
     gateway 10.0.16.1
-    dns-nameservers 8.8.8.8
 ```
 
 **H2 (LEAF2):**
@@ -486,7 +485,6 @@ iface ens3 inet static
     address 10.0.16.102
     netmask 255.255.255.0
     gateway 10.0.16.1
-    dns-nameservers 8.8.8.8
 ```
 
 ---
