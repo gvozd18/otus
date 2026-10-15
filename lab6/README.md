@@ -138,6 +138,7 @@
 ## Конфигурация устройств
 
 ### SPINE1
+```
 hostname SPINE1
 !
 service routing protocols model multi-agent
@@ -204,9 +205,10 @@ neighbor 10.0.0.9 activate
 !
 end
 
-text
+```
 
 ### SPINE2
+```
 hostname SPINE2
 !
 service routing protocols model multi-agent
@@ -273,9 +275,10 @@ neighbor 10.0.0.11 activate
 !
 end
 
-text
+```
 
 ### LEAF1
+```
 hostname LEAF1
 !
 service routing protocols model multi-agent
@@ -362,9 +365,10 @@ neighbor 10.0.0.2 activate
 !
 end
 
-text
+```
 
 ### LEAF2
+```
 hostname LEAF2
 !
 service routing protocols model multi-agent
@@ -451,10 +455,10 @@ neighbor 10.0.0.6 activate
 !
 end
 
-text
+```
 
 ### LEAF3
-
+```
 LEAF3 настроен как полноценный VTEP с VRF GREEN. Клиент H3 может быть подключён при необходимости — для этого достаточно настроить IP на Eth3.
 hostname LEAF3
 !
@@ -542,17 +546,17 @@ neighbor 10.0.0.10 activate
 !
 end
 
-text
+```
 
 ## Соседство и маршруты
 
 Для примера приведены выводы команд с LEAF1
 
-![LEAF1](LEAF1_1.jpg)
+![LEAF1](Leaf1_1.jpg)
 
-![LEAF1](LEAF1_2.jpg)
+![LEAF1](Leaf1_2.jpg)
 
-![LEAF1](LEAF1_3.jpg)
+![LEAF1](Leaf1_3.jpg)
 ### Связность клиентов
 
 ![H1](H1.jpg)
