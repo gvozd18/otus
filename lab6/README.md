@@ -544,101 +544,18 @@ end
 
 text
 
-## Проверка
+## Соседство и маршруты
 
-### Underlay
-show bgp ipv4 unicast summary
-show ip route bgp
+Для примера приведены выводы команд с LEAF1
 
+![LEAF1](LEAF1_1.jpg)
 
+![LEAF1](LEAF1_2.jpg)
 
-### Overlay EVPN
-show bgp evpn summary
-show bgp evpn route-type imet
-show bgp evpn route-type mac-ip
-show bgp evpn route-type ip-prefix ipv4
-
-text
-
-
-
-### VXLAN
-show vxlan vtep
-show vxlan address-table
-show vxlan vni
-
-
-
-### VRF
-show ip route vrf BLUE
-show ip route vrf RED
-show ip route vrf GREEN
-show vrf
-
-
-
-
-
+![LEAF1](LEAF1_3.jpg)
 ### Связность клиентов
 
-С H1:
-ping 10.0.17.101
-ping 10.0.18.101
+![H1](H1.jpg)
 
-text
+![H2](H2.jpg)
 
-С H2:
-ping 10.0.16.101
-ping 10.0.18.101
-
-text
-
-С H3 (при подключении):
-ping 10.0.16.101
-ping 10.0.17.101
-
-text
-
-Ожидаемый результат: ping проходит через L3VNI (маршрутизация между VRF BLUE, RED, GREEN на уровне EVPN Type-5).
-
----
-
-## Ключевые отличия от L2VNI-версии
-
-| Аспект | L2VNI (было) | L3VNI (стало) |
-|---|---|---|
-| VNI | один 10010 | L2VNI 10010/10020/10030 + L3VNI 10000/20000/30000 |
-| VRF | нет | BLUE, RED, GREEN |
-| SVI | anycast в общем VLAN | SVI в своём VRF |
-| Маршрутизация между клиентами | в одной L2-сети | через L3VNI (Symmetric IRB) |
-| BGP | только `vlan` | `vlan` + `vrf` |
-| Типы EVPN | Type-2, Type-3 | Type-2, Type-3, Type-5 |
-| Cross-import RT | не нужен | нужен для маршрутизации между VRF |
-| `send-community extended` | не критично | **обязательно** на всех участниках EVPN |
-
----
-
-## Важные замечания
-
-1. **`service routing protocols model multi-agent`** — обязателен на всех устройствах (Spine и Leaf). Без него BGP EVPN не работает, сессии висят в `Estab(NotNegotiated)`. Требует перезагрузки.
-
-2. **`send-community extended`** — обязательно на всех устройствах, участвующих в передаче EVPN-маршрутов (Leaf и Spine). Без него RT/RD теряются, и маршруты Type-5 не импортируются в VRF, даже если cross-import настроен.
-
-3. **Cross-import RT** — нужен, если требуется маршрутизация между VRF. Для изоляции VRF cross-import не настраивается. В данной схеме каждый VRF импортирует RT двух других VRF.
-
-4. **L3VNI** — уникален для каждого VRF, одинаков на всех VTEP-ах, не пересекается с L2VNI.
-
-5. **Порядок загрузки устройств** — если Spine загружается позже Leaf, EVPN-сессия может зависнуть в `Estab(NotNegotiated)`. Лечится `clear ip bgp <neighbor>`.
-
-6. **LEAF3** — настроен как полноценный VTEP с VRF GREEN. Клиент H3 может быть подключён к Eth3 в любой момент без изменения конфигурации LEAF3.
-
----
-
-## Итог
-
-В ходе работы:
-- Настроен Underlay (iBGP, Spine — RR).
-- Настроен Overlay EVPN/VXLAN с L3VNI (Symmetric IRB).
-- Созданы VRF BLUE, RED, GREEN, каждый со своим L3VNI.
-- Настроена маршрутизация между VRF через cross-import RT.
-- Обеспечена IP-связность между H1 (`10.0.16.101`), H2 (`10.0.17.101`) и H3 (`10.0.18.101`).
