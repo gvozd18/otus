@@ -459,7 +459,6 @@ end
 
 ### LEAF3
 ```
-LEAF3 настроен как полноценный VTEP с VRF GREEN. Клиент H3 может быть подключён при необходимости — для этого достаточно настроить IP на Eth3.
 hostname LEAF3
 !
 service routing protocols model multi-agent
