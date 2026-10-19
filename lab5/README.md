@@ -503,3 +503,12 @@ iface ens3 inet static
 ![H1](H1.jpg)
 
 ![H2](H2.jpg)
+
+
+### Ответы по замечаниями
+
+![Общий](Общий.jpg)
+
+![VXlan](vxlan.jpg)
+
+
