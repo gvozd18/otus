@@ -139,9 +139,7 @@
 ## Конфигурация устройств
 
 ### SPINE1
-
-```
-
+'''
 hostname SPINE1
 !
 service routing protocols model multi-agent
@@ -209,7 +207,7 @@ router bgp 65000
 exit
 end
 
-```
+'''
 
 ### SPINE2
 
