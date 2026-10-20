@@ -139,7 +139,8 @@
 ## Конфигурация устройств
 
 ### SPINE1
-'''
+```
+
 hostname SPINE1
 !
 service routing protocols model multi-agent
@@ -207,9 +208,11 @@ router bgp 65000
 exit
 end
 
-'''
+```
 
 ### SPINE2
+
+```
 
 hostname SPINE2
 !
@@ -280,7 +283,6 @@ end
 ```
 
 ### LEAF1
-
 ```
 
 hostname LEAF1
@@ -377,7 +379,6 @@ router bgp 65000
    exit
 exit
 end
-
 ```
 
 ### LEAF2
@@ -617,13 +618,13 @@ end
 
 ```
 
-Для примера приведены выводы команд с LEAF1
+### Для примера приведены выводы команд с LEAF1 и дамп с интерфейса Spine1
 
-![LEAF1](Leaf1_1.jpg)
+![LEAF1](Leaf1.jpg)
 
-![LEAF1](Leaf1_2.jpg)
+![Spine1](spine1.jpg)
 
-![LEAF1](Leaf1_3.jpg)
+
 ### Связность клиентов
 
 ![H1](H1.jpg)
