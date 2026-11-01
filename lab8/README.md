@@ -646,9 +646,8 @@ router bgp 65100
 
 ### Для примера приведены выводы команд с LEAF1, BORDER-LEAF, SPINE1, BORDER-ROUTER
 
-![LEAF1](Leaf1.jpg)
+![screen](screen.jpg)
 
-![Spine1](spine1.jpg)
 
 
 ### Связность клиентов
