@@ -683,6 +683,8 @@ router bgp 65100
 
 ![H1](H1.jpg)
 
+![H2](H2.jpg)
+
 ### Ответы на замечания
 
 ![Leaf](Leaf1_1.jpg)
@@ -690,5 +692,4 @@ router bgp 65100
 
 
 
-![H2](H2.jpg)
 
