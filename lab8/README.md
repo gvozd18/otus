@@ -400,7 +400,6 @@ router bgp 65000
    !
    vrf BLUE
       rd 10.0.2.11:10000
-      route-target import evpn 65000:9999
       route-target import evpn 65000:10000
       route-target export evpn 65000:10000
       redistribute connected
@@ -489,7 +488,6 @@ router bgp 65000
    !
    vrf RED
       rd 10.0.2.13:20000
-      route-target import evpn 65000:8888
       route-target import evpn 65000:20000
       route-target export evpn 65000:20000
       redistribute connected
@@ -507,32 +505,28 @@ router bgp 65000
 ```
 hostname BORDER-LEAF
 !
-service routing protocols model multi-agent
+spanning-tree mode mstp
 !
 vlan 10
    name BLUE-ZONE
+!
 vlan 20
    name RED-ZONE
 !
 vrf instance BLUE
+!
 vrf instance RED
 !
-ip routing
-ip routing vrf BLUE
-ip routing vrf RED
-!
-! --- Underlay в сторону Spine ---
 interface Ethernet1
    description TO-SPINE1
    no switchport
-   ip address 10.0.0.13/31
+   ip address 10.0.0.12/31
 !
 interface Ethernet2
    description TO-SPINE2
    no switchport
-   ip address 10.0.0.15/31
+   ip address 10.0.0.14/31
 !
-! --- Транзитные интерфейсы к BORDER-ROUTER ---
 interface Ethernet3
    description TRANSIT-BLUE
    no switchport
@@ -545,6 +539,14 @@ interface Ethernet4
    vrf RED
    ip address 10.255.1.1/30
 !
+interface Ethernet5
+!
+interface Ethernet6
+!
+interface Ethernet7
+!
+interface Ethernet8
+!
 interface Loopback0
    description Router-ID
    ip address 10.0.1.14/32
@@ -553,6 +555,8 @@ interface Loopback1
    description VTEP
    ip address 10.0.2.14/32
 !
+interface Management1
+!
 interface Vxlan1
    vxlan source-interface Loopback1
    vxlan udp-port 4789
@@ -560,6 +564,20 @@ interface Vxlan1
    vxlan vlan 20 vni 10020
    vxlan vrf BLUE vni 10000
    vxlan vrf RED vni 20000
+!
+ip routing
+ip routing vrf BLUE
+ip routing vrf RED
+!
+ip prefix-list PL-CLIENT-NETS
+   seq 10 permit 10.0.16.0/24
+   seq 20 permit 10.0.17.0/24
+!
+ip route vrf BLUE 0.0.0.0/0 10.255.0.2
+ip route vrf RED 0.0.0.0/0 10.255.1.2
+!
+route-map RM-EXPORT-TO-EVPN permit 10
+   match ip address prefix-list PL-CLIENT-NETS
 !
 route-map RM_connect permit 10
    match interface Loopback0
@@ -570,6 +588,8 @@ route-map RM_connect permit 20
 router bgp 65000
    router-id 10.0.1.14
    maximum-paths 10
+   neighbor 10.0.0.13 remote-as 65000
+   neighbor 10.0.0.15 remote-as 65000
    neighbor 10.0.1.1 remote-as 65000
    neighbor 10.0.1.1 update-source Loopback0
    neighbor 10.0.1.1 send-community extended
@@ -592,28 +612,37 @@ router bgp 65000
       neighbor 10.0.1.1 activate
       neighbor 10.0.1.2 activate
    !
+   address-family ipv4
+      no neighbor 10.0.0.1 activate
+      neighbor 10.0.0.13 activate
+      neighbor 10.0.0.15 activate
+      no neighbor 10.0.1.1 activate
+      no neighbor 10.0.1.2 activate
+      redistribute connected
+   !
    vrf BLUE
       rd 10.0.2.14:10000
       route-target import evpn 65000:10000
-      route-target import evpn 65000:20000
-      route-target export evpn 65000:8888
       route-target export evpn 65000:10000
       route-target export evpn imported-route
       neighbor 10.255.0.2 remote-as 65100
-
+      neighbor 10.255.0.2 allowas-in 1
+      redistribute connected
+      redistribute static
+      redistribute bgp leaked
    !
    vrf RED
       rd 10.0.2.14:20000
-      route-target import evpn 65000:10000
       route-target import evpn 65000:20000
-      route-target export evpn 65000:9999
       route-target export evpn 65000:20000
       route-target export evpn imported-route
       neighbor 10.255.1.2 remote-as 65100
-   !
-   address-family ipv4
-      neighbor 10.255.0.2 activate
-      neighbor 10.255.1.2 activate
+      neighbor 10.255.1.2 allowas-in 1
+      redistribute connected
+      redistribute static
+      redistribute bgp leaked
+!
+
    
 
 ```
@@ -653,6 +682,13 @@ router bgp 65100
 ### Связность клиентов
 
 ![H1](H1.jpg)
+
+### Ответы на замечания
+
+![Leaf](Leaf1_1.jpg)
+![BR](BR.jpg)
+
+
 
 ![H2](H2.jpg)
 
