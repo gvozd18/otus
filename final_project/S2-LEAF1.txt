@@ -1,0 +1,132 @@
+service routing protocols model multi-agent
+!
+hostname S2-LEAF1
+!
+spanning-tree mode mstp
+!
+vlan 130
+   name DATA-SITE2
+!
+vrf instance VRF-DATA
+!
+interface Ethernet1
+   description to S2-SPINE1 Ethernet1
+   mtu 9214
+   no switchport
+   ip address 10.2.0.1/31
+   ip ospf network point-to-point
+   ip ospf area 0.0.0.0
+!
+interface Ethernet2
+   description SITE2-TEST Ubuntu16 DATA
+   switchport access vlan 130
+   spanning-tree portfast
+!
+interface Ethernet3
+   description Routed DCI: eBGP IPv4 (VTEP reachability) + eBGP EVPN + VXLAN UDP4789
+   mtu 9214
+   no switchport
+   ip address 172.31.12.1/31
+!
+interface Ethernet4
+!
+interface Ethernet5
+!
+interface Ethernet6
+!
+interface Ethernet7
+!
+interface Loopback0
+   description Router-ID / EVPN source
+   ip address 10.2.1.11/32
+   ip ospf area 0.0.0.0
+!
+interface Loopback1
+   description VTEP source
+   ip address 10.2.2.11/32
+   ip ospf area 0.0.0.0
+!
+interface Management1
+!
+interface Vlan130
+   description Anycast Gateway Site2 DATA
+   vrf VRF-DATA
+   ip address virtual 10.2.18.1/24
+!
+interface Vxlan1
+   vxlan source-interface Loopback1
+   vxlan udp-port 4789
+   vxlan vlan 130 vni 20130
+   vxlan vrf VRF-DATA vni 50130
+!
+ip virtual-router mac-address 00:1c:73:00:02:02
+!
+ip routing
+ip routing vrf VRF-DATA
+!
+ip prefix-list PL-S1-VTEPS seq 10 permit 10.1.2.11/32
+ip prefix-list PL-S1-VTEPS seq 20 permit 10.1.2.12/32
+ip prefix-list PL-S1-VTEPS seq 30 permit 10.1.2.13/32
+ip prefix-list PL-S2-DATA seq 10 permit 10.2.18.0/24
+ip prefix-list PL-S2-VTEPS seq 10 permit 10.2.2.11/32
+ip extcommunity-list DCI-DATA-RT permit rt 65000:50130
+!
+route-map RM-DATA-CONNECTED permit 10
+   match ip address prefix-list PL-S2-DATA
+!
+route-map RM-DCI-EVPN-DATA permit 10
+   match extcommunity DCI-DATA-RT
+!
+route-map RM-DCI-VTEP-IN permit 10
+   match ip address prefix-list PL-S1-VTEPS
+!
+route-map RM-DCI-VTEP-OUT permit 10
+   match ip address prefix-list PL-S2-VTEPS
+!
+route-map RM-OSPF-REMOTE-VTEP permit 10
+   match ip address prefix-list PL-S1-VTEPS
+!
+router bgp 65002
+   router-id 10.2.1.11
+   no bgp default ipv4-unicast
+   neighbor EVPN-RR peer group
+   neighbor EVPN-RR remote-as 65002
+   neighbor EVPN-RR update-source Loopback0
+   neighbor EVPN-RR send-community extended
+   neighbor EVPN-RR maximum-routes 12000
+   neighbor 10.2.1.1 peer group EVPN-RR
+   neighbor 172.31.12.0 remote-as 65001
+   neighbor 172.31.12.0 next-hop-unchanged
+   neighbor 172.31.12.0 description DCI eBGP EVPN + IPv4 VTEP routes to S1-LEAF3
+   neighbor 172.31.12.0 send-community extended
+   neighbor 172.31.12.0 maximum-routes 12000
+   !
+   vlan 130
+      rd 10.2.1.11:130
+      route-target both 65002:20130
+      redistribute learned
+   !
+   address-family evpn
+      neighbor EVPN-RR activate
+      neighbor 172.31.12.0 activate
+      neighbor 172.31.12.0 route-map RM-DCI-EVPN-DATA in
+      neighbor 172.31.12.0 route-map RM-DCI-EVPN-DATA out
+   !
+   address-family ipv4
+      neighbor 172.31.12.0 activate
+      neighbor 172.31.12.0 route-map RM-DCI-VTEP-IN in
+      neighbor 172.31.12.0 route-map RM-DCI-VTEP-OUT out
+      network 10.2.2.11/32
+   !
+   vrf VRF-DATA
+      rd 10.2.1.11:50130
+      route-target import evpn 65000:50130
+      route-target export evpn 65000:50130
+      redistribute connected route-map RM-DATA-CONNECTED
+!
+router ospf 100
+   router-id 10.2.1.11
+   redistribute bgp route-map RM-OSPF-REMOTE-VTEP
+   max-lsa 12000
+!
+end

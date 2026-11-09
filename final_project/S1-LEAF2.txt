@@ -1,0 +1,160 @@
+service routing protocols model multi-agent
+!
+hostname S1-LEAF2
+!
+spanning-tree mode mstp
+!
+vlan 110
+   name SSH
+!
+vlan 120
+   name IPMI
+!
+vlan 130
+   name DATA
+!
+vrf instance VRF-DATA
+!
+vrf instance VRF-IPMI
+!
+vrf instance VRF-SSH
+!
+interface Port-Channel10
+   description HOST-ESI dual-homed via 802.3ad (All-Active)
+   switchport access vlan 130
+   !
+   evpn ethernet-segment
+      identifier 0001:0000:0000:0000:0010
+      route-target import 00:01:00:00:00:10
+   spanning-tree portfast
+!
+interface Ethernet1
+   description to SPINE1 Ethernet2
+   mtu 9214
+   no switchport
+   ip address 10.1.0.5/31
+   ip ospf network point-to-point
+   ip ospf area 0.0.0.0
+!
+interface Ethernet2
+   description to SPINE2 Ethernet1
+   mtu 9214
+   no switchport
+   ip address 10.1.0.7/31
+   ip ospf network point-to-point
+   ip ospf area 0.0.0.0
+!
+interface Ethernet3
+   description HOST-ESI eth0/eth1
+   channel-group 10 mode on
+!
+interface Ethernet4
+!
+interface Ethernet5
+!
+interface Ethernet6
+!
+interface Ethernet7
+!
+interface Loopback0
+   description Router-ID / BGP source
+   ip address 10.1.1.12/32
+   ip ospf area 0.0.0.0
+!
+interface Loopback1
+   description unique VTEP address
+   ip address 10.1.2.12/32
+   ip ospf area 0.0.0.0
+!
+interface Management1
+!
+interface Vlan110
+   description Anycast SVI SSH (isolated VRF)
+   vrf VRF-SSH
+   ip address virtual 10.1.16.1/24
+!
+interface Vlan120
+   description Anycast SVI IPMI (isolated VRF)
+   vrf VRF-IPMI
+   ip address virtual 10.1.17.1/24
+!
+interface Vlan130
+   description Anycast SVI DATA (isolated VRF)
+   vrf VRF-DATA
+   ip address virtual 10.1.18.1/24
+!
+interface Vxlan1
+   vxlan source-interface Loopback1
+   vxlan udp-port 4789
+   vxlan vlan 110 vni 10110
+   vxlan vlan 120 vni 10120
+   vxlan vlan 130 vni 10130
+   vxlan vrf VRF-DATA vni 50130
+   vxlan vrf VRF-IPMI vni 50120
+   vxlan vrf VRF-SSH vni 50110
+!
+ip virtual-router mac-address 00:1c:73:00:01:01
+!
+ip routing
+ip routing vrf VRF-DATA
+ip routing vrf VRF-IPMI
+ip routing vrf VRF-SSH
+!
+ip prefix-list PL-S1-DATA seq 10 permit 10.1.18.0/24
+!
+route-map RM-DATA-CONNECTED permit 10
+   match ip address prefix-list PL-S1-DATA
+!
+router bgp 65001
+   router-id 10.1.1.12
+   no bgp default ipv4-unicast
+   neighbor EVPN-RR peer group
+   neighbor EVPN-RR remote-as 65001
+   neighbor EVPN-RR update-source Loopback0
+   neighbor EVPN-RR send-community extended
+   neighbor EVPN-RR maximum-routes 12000
+   neighbor 10.1.1.1 peer group EVPN-RR
+   neighbor 10.1.1.2 peer group EVPN-RR
+   !
+   vlan 110
+      rd 10.1.1.12:110
+      route-target both 65001:10110
+      redistribute learned
+   !
+   vlan 120
+      rd 10.1.1.12:120
+      route-target both 65001:10120
+      redistribute learned
+   !
+   vlan 130
+      rd 10.1.1.12:130
+      route-target both 65001:10130
+      redistribute learned
+   !
+   address-family evpn
+      neighbor EVPN-RR activate
+   !
+   vrf VRF-DATA
+      rd 10.1.1.12:50130
+      route-target import evpn 65000:50130
+      route-target export evpn 65000:50130
+      redistribute connected route-map RM-DATA-CONNECTED
+   !
+   vrf VRF-IPMI
+      rd 10.1.1.12:50120
+      route-target import evpn 65001:50120
+      route-target export evpn 65001:50120
+      redistribute connected
+   !
+   vrf VRF-SSH
+      rd 10.1.1.12:50110
+      route-target import evpn 65001:50110
+      route-target export evpn 65001:50110
+      redistribute connected
+!
+router ospf 100
+   router-id 10.1.1.12
+   max-lsa 12000
+   maximum-paths 8
+!
+end

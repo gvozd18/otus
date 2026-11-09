@@ -1,0 +1,69 @@
+service routing protocols model multi-agent
+!
+hostname S1-SPINE1
+!
+spanning-tree mode mstp
+!
+interface Ethernet1
+   description to LEAF1 Ethernet1
+   mtu 9214
+   no switchport
+   ip address 10.1.0.0/31
+   ip ospf network point-to-point
+   ip ospf area 0.0.0.0
+!
+interface Ethernet2
+   description to LEAF2 Ethernet1
+   mtu 9214
+   no switchport
+   ip address 10.1.0.4/31
+   ip ospf network point-to-point
+   ip ospf area 0.0.0.0
+!
+interface Ethernet3
+   description to LEAF3 Ethernet1
+   mtu 9214
+   no switchport
+   ip address 10.1.0.8/31
+   ip ospf network point-to-point
+   ip ospf area 0.0.0.0
+!
+interface Ethernet4
+!
+interface Ethernet5
+!
+interface Ethernet6
+!
+interface Ethernet7
+!
+interface Loopback0
+   description Router-ID / EVPN RR update-source
+   ip address 10.1.1.1/32
+   ip ospf area 0.0.0.0
+!
+interface Management1
+!
+ip routing
+!
+router bgp 65001
+   router-id 10.1.1.1
+   no bgp default ipv4-unicast
+   neighbor EVPN-LEAFS peer group
+   neighbor EVPN-LEAFS remote-as 65001
+   neighbor EVPN-LEAFS update-source Loopback0
+   neighbor EVPN-LEAFS route-reflector-client
+   neighbor EVPN-LEAFS send-community extended
+   neighbor EVPN-LEAFS maximum-routes 12000
+   neighbor 10.1.1.11 peer group EVPN-LEAFS
+   neighbor 10.1.1.12 peer group EVPN-LEAFS
+   neighbor 10.1.1.13 peer group EVPN-LEAFS
+   !
+   address-family evpn
+      neighbor EVPN-LEAFS activate
+!
+router ospf 100
+   router-id 10.1.1.1
+   max-lsa 12000
+   maximum-paths 8
+!
+end

@@ -1,0 +1,54 @@
+service routing protocols model multi-agent
+!
+hostname S2-SPINE1
+!
+spanning-tree mode mstp
+!
+interface Ethernet1
+   description to S2-LEAF1 Ethernet1
+   mtu 9214
+   no switchport
+   ip address 10.2.0.0/31
+   ip ospf network point-to-point
+   ip ospf area 0.0.0.0
+!
+interface Ethernet2
+!
+interface Ethernet3
+!
+interface Ethernet4
+!
+interface Ethernet5
+!
+interface Ethernet6
+!
+interface Ethernet7
+!
+interface Loopback0
+   description Site2 BGP route-reflector ID
+   ip address 10.2.1.1/32
+   ip ospf area 0.0.0.0
+!
+interface Management1
+!
+ip routing
+!
+router bgp 65002
+   router-id 10.2.1.1
+   no bgp default ipv4-unicast
+   neighbor EVPN-LEAFS peer group
+   neighbor EVPN-LEAFS remote-as 65002
+   neighbor EVPN-LEAFS update-source Loopback0
+   neighbor EVPN-LEAFS route-reflector-client
+   neighbor EVPN-LEAFS send-community extended
+   neighbor EVPN-LEAFS maximum-routes 12000
+   neighbor 10.2.1.11 peer group EVPN-LEAFS
+   !
+   address-family evpn
+      neighbor EVPN-LEAFS activate
+!
+router ospf 100
+   router-id 10.2.1.1
+   max-lsa 12000
+!
+end

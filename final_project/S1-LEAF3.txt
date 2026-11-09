@@ -1,0 +1,191 @@
+service routing protocols model multi-agent
+!
+hostname S1-LEAF3
+!
+spanning-tree mode mstp
+!
+vlan 110
+   name SSH
+!
+vlan 120
+   name IPMI
+!
+vlan 130
+   name DATA
+!
+vrf instance VRF-DATA
+!
+vrf instance VRF-IPMI
+!
+vrf instance VRF-SSH
+!
+interface Ethernet1
+   description to SPINE1 Ethernet3
+   mtu 9214
+   no switchport
+   ip address 10.1.0.9/31
+   ip ospf network point-to-point
+   ip ospf area 0.0.0.0
+!
+interface Ethernet2
+   description to SPINE2 Ethernet3
+   mtu 9214
+   no switchport
+   ip address 10.1.0.11/31
+   ip ospf network point-to-point
+   ip ospf area 0.0.0.0
+!
+interface Ethernet3
+   description TEST2 Ubuntu16 VLAN trunk
+   switchport trunk allowed vlan 110,120,130
+   switchport mode trunk
+   spanning-tree portfast
+!
+interface Ethernet4
+   description Routed DCI: eBGP IPv4 (VTEP reachability) + eBGP EVPN + VXLAN UDP4789
+   mtu 9214
+   no switchport
+   ip address 172.31.12.0/31
+!
+interface Ethernet5
+!
+interface Ethernet6
+!
+interface Ethernet7
+!
+interface Loopback0
+   description Router-ID / BGP source
+   ip address 10.1.1.13/32
+   ip ospf area 0.0.0.0
+!
+interface Loopback1
+   description unique VTEP address
+   ip address 10.1.2.13/32
+   ip ospf area 0.0.0.0
+!
+interface Management1
+!
+interface Vlan110
+   description Anycast SVI SSH (isolated VRF)
+   vrf VRF-SSH
+   ip address virtual 10.1.16.1/24
+!
+interface Vlan120
+   description Anycast SVI IPMI (isolated VRF)
+   vrf VRF-IPMI
+   ip address virtual 10.1.17.1/24
+!
+interface Vlan130
+   description Anycast SVI DATA (isolated VRF)
+   vrf VRF-DATA
+   ip address virtual 10.1.18.1/24
+!
+interface Vxlan1
+   vxlan source-interface Loopback1
+   vxlan udp-port 4789
+   vxlan vlan 110 vni 10110
+   vxlan vlan 120 vni 10120
+   vxlan vlan 130 vni 10130
+   vxlan vrf VRF-DATA vni 50130
+   vxlan vrf VRF-IPMI vni 50120
+   vxlan vrf VRF-SSH vni 50110
+!
+ip virtual-router mac-address 00:1c:73:00:01:01
+!
+ip routing
+ip routing vrf VRF-DATA
+ip routing vrf VRF-IPMI
+ip routing vrf VRF-SSH
+!
+ip prefix-list PL-S1-DATA seq 10 permit 10.1.18.0/24
+ip prefix-list PL-S1-VTEPS seq 10 permit 10.1.2.11/32
+ip prefix-list PL-S1-VTEPS seq 20 permit 10.1.2.12/32
+ip prefix-list PL-S1-VTEPS seq 30 permit 10.1.2.13/32
+ip prefix-list PL-S2-VTEPS seq 10 permit 10.2.2.11/32
+ip extcommunity-list DCI-DATA-RT permit rt 65000:50130
+!
+route-map RM-DATA-CONNECTED permit 10
+   match ip address prefix-list PL-S1-DATA
+!
+route-map RM-DCI-EVPN-DATA permit 10
+   match extcommunity DCI-DATA-RT
+!
+route-map RM-DCI-VTEP-IN permit 10
+   match ip address prefix-list PL-S2-VTEPS
+!
+route-map RM-DCI-VTEP-OUT permit 10
+   match ip address prefix-list PL-S1-VTEPS
+!
+route-map RM-OSPF-REMOTE-VTEP permit 10
+   match ip address prefix-list PL-S2-VTEPS
+!
+router bgp 65001
+   router-id 10.1.1.13
+   no bgp default ipv4-unicast
+   neighbor EVPN-RR peer group
+   neighbor EVPN-RR remote-as 65001
+   neighbor EVPN-RR update-source Loopback0
+   neighbor EVPN-RR send-community extended
+   neighbor EVPN-RR maximum-routes 12000
+   neighbor 10.1.1.1 peer group EVPN-RR
+   neighbor 10.1.1.2 peer group EVPN-RR
+   neighbor 172.31.12.1 remote-as 65002
+   neighbor 172.31.12.1 next-hop-unchanged
+   neighbor 172.31.12.1 description DCI eBGP EVPN + IPv4 VTEP routes to S2-LEAF1
+   neighbor 172.31.12.1 send-community extended
+   neighbor 172.31.12.1 maximum-routes 12000
+   !
+   vlan 110
+      rd 10.1.1.13:110
+      route-target both 65001:10110
+      redistribute learned
+   !
+   vlan 120
+      rd 10.1.1.13:120
+      route-target both 65001:10120
+      redistribute learned
+   !
+   vlan 130
+      rd 10.1.1.13:130
+      route-target both 65001:10130
+      redistribute learned
+   !
+   address-family evpn
+      neighbor EVPN-RR activate
+      neighbor 172.31.12.1 activate
+      neighbor 172.31.12.1 route-map RM-DCI-EVPN-DATA in
+      neighbor 172.31.12.1 route-map RM-DCI-EVPN-DATA out
+   !
+   address-family ipv4
+      neighbor 172.31.12.1 activate
+      neighbor 172.31.12.1 route-map RM-DCI-VTEP-IN in
+      neighbor 172.31.12.1 route-map RM-DCI-VTEP-OUT out
+      network 10.1.2.11/32
+      network 10.1.2.12/32
+      network 10.1.2.13/32
+   !
+   vrf VRF-DATA
+      rd 10.1.1.13:50130
+      route-target import evpn 65000:50130
+      route-target export evpn 65000:50130
+      redistribute connected route-map RM-DATA-CONNECTED
+   !
+   vrf VRF-IPMI
+      rd 10.1.1.13:50120
+      route-target import evpn 65001:50120
+      route-target export evpn 65001:50120
+      redistribute connected
+   !
+   vrf VRF-SSH
+      rd 10.1.1.13:50110
+      route-target import evpn 65001:50110
+      route-target export evpn 65001:50110
+      redistribute connected
+!
+router ospf 100
+   router-id 10.1.1.13
+   redistribute bgp route-map RM-OSPF-REMOTE-VTEP
+   max-lsa 12000
+   maximum-paths 8
+!
+end
