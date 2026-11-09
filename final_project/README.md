@@ -53,7 +53,7 @@ sudo ip route replace default via 10.2.18.1 dev "$DEV"
 
 ## Конфигурации и развёртывание
 
-- **Site 1:** [SPINE1](S1-SPINE1.txt), [SPINE2](configs/arista/SPINE2.txt), [LEAF1](S1-LEAF1.txt), [LEAF2](S1-LEAF2.txt), [LEAF3 — Border Leaf](S1-LEAF3.txt).
+- **Site 1:** [SPINE1](S1-SPINE1.txt), [SPINE2](S1-SPINE2.txt), [LEAF1](S1-LEAF1.txt), [LEAF2](S1-LEAF2.txt), [LEAF3 — Border Leaf](S1-LEAF3.txt).
 - **Site 2:** [S2-SPINE1](S2-SPINE1.txt), [S2-LEAF1 — Border Leaf](S2-LEAF1.txt).
 
 
