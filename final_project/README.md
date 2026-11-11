@@ -63,7 +63,7 @@ sudo ip route replace default via 10.2.18.1 dev "$DEV"
 |---|---|---|
 | 1 |  S1-LEAF1 | [02-ospf-site1.png](screenshots/02-ospf-site1.png) |
 | 2 |  S2-LEAF1 | [03-ospf-site2.png](screenshots/03-ospf-site2.png) |
-| 3 |  S1-LEAF3 | [S1-LEAF3.png](S1-LEAF3.png) |
+| 3 |  S1-LEAF3 | [S1-LEAF3.png](S1_LEAF3.png) |
 | 4 |  Дамп S1-LEAF1-ETH1 | [Дамп S1-LEAF1-ETH1.png](dump.png) |
 
 
